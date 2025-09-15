@@ -14,6 +14,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const storage = firebase.storage();
 
+// Wait for DOM ready
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("productForm");
   const messageDiv = document.getElementById("message");
