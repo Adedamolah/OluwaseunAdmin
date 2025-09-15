@@ -14,42 +14,42 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-const productForm = document.getElementById("productForm");
-const statusText = document.getElementById("status");
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("productForm");
+  const messageDiv = document.getElementById("message");
 
-productForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const name = document.getElementById("name").value;
-  const price = document.getElementById("price").value;
-  const file = document.getElementById("image").files[0];
+    const name = document.getElementById("name").value;
+    const price = document.getElementById("price").value;
+    const file = document.getElementById("image").files[0];
 
-  if (!file) {
-    statusText.textContent = "⚠ Please select an image!";
-    return;
-  }
+    if (!file) {
+      messageDiv.innerHTML = `<div class="error">Please select an image</div>`;
+      return;
+    }
 
-  try {
-    statusText.textContent = "⏳ Uploading...";
+    try {
+      // Upload image to Storage
+      const storageRef = storage.ref("products/" + Date.now() + "_" + file.name);
+      await storageRef.put(file);
+      const imageUrl = await storageRef.getDownloadURL();
 
-    // Upload image to Firebase Storage
-    const storageRef = storage.ref(`products/${Date.now()}_${file.name}`);
-    await storageRef.put(file);
-    const imageUrl = await storageRef.getDownloadURL();
+      // Save to Firestore
+      await db.collection("products").add({
+        name: name,
+        price: price,
+        image: imageUrl,
+        createdAt: new Date()
+      });
 
-    // Save product to Firestore
-    await db.collection("products").add({
-      name,
-      price,
-      image: imageUrl,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+      messageDiv.innerHTML = `<div class="success">✅ Product uploaded successfully!</div>`;
+      form.reset();
 
-    statusText.textContent = "✅ Product uploaded successfully!";
-    productForm.reset();
-
-  } catch (error) {
-    console.error("Error uploading product:", error);
-    statusText.textContent = "❌ Upload failed. Check console.";
-  }
+    } catch (error) {
+      console.error(error);
+      messageDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+    }
+  });
 });
