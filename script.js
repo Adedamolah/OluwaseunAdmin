@@ -24,20 +24,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const name = document.getElementById("name").value;
     const price = document.getElementById("price").value;
-    const file = document.getElementById("image").files[0];
+    const imageUrl = document.getElementById("image").value;
 
-    if (!file) {
-      messageDiv.innerHTML = `<div class="error">Please select an image</div>`;
+    if (!imageUrl) {
+      messageDiv.innerHTML = `<div class="error">Please enter an image URL</div>`;
       return;
     }
 
     try {
-      // Upload image to Storage
-      const storageRef = storage.ref("products/" + Date.now() + "_" + file.name);
-      await storageRef.put(file);
-      const imageUrl = await storageRef.getDownloadURL();
-
-      // Save to Firestore
+      // Save to Firestore directly
       await db.collection("products").add({
         name: name,
         price: price,
